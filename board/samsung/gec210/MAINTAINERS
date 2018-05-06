@@ -1,0 +1,6 @@
+GEC210 BOARD
+M:	Lucifer Zhu <LuciferZhu@yeah.net>
+S:	Maintained
+F:	board/samsung/gec210/
+F:	include/configs/gec210.h
+F:	configs/gec210_defconfig

@@ -1,0 +1,15 @@
+if TARGET_GEC210
+
+config SYS_BOARD
+	default "gec210"
+
+config SYS_VENDOR
+	default "samsung"
+
+config SYS_SOC
+	default "s5pc1xx"
+
+config SYS_CONFIG_NAME
+	default "gec210"
+
+endif

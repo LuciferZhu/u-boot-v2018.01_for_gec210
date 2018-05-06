@@ -330,6 +330,7 @@ scripts/Kbuild.include: ;
 include scripts/Kbuild.include
 
 # Make variables (CC, etc...)
+CROSS_COMPILE	?= /usr/local/arm/gcc-linaro-7.2.1-2017.11-i686_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 
 AS		= $(CROSS_COMPILE)as
 # Always use GNU ld
