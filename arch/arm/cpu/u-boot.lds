@@ -44,6 +44,8 @@ SECTIONS
 		*(.__image_copy_start)
 		*(.vectors)
 		CPUDIR/start.o (.text*)
+		board/samsung/gec210/lowlevel_init.o (.text*)
+		board/samsung/gec210/mem_init.o (.text*)
 		*(.text*)
 	}
 

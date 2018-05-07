@@ -10,4 +10,5 @@
 
 obj-y	:= gec210.o
 obj-$(CONFIG_SAMSUNG_ONENAND)	+= onenand.o
-obj-y	+= lowlevel_init.o
+extra-y	+= lowlevel_init.o
+extra-y	+= mem_init.o

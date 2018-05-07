@@ -1031,7 +1031,7 @@ u-boot.sha1:	u-boot.bin
 		tools/ubsha1 u-boot.bin
 
 u-boot.dis:	u-boot
-		$(OBJDUMP) -d $< > $@
+		$(OBJDUMP) -D $< > $@
 
 ifdef CONFIG_TPL
 SPL_PAYLOAD := tpl/u-boot-with-tpl.bin

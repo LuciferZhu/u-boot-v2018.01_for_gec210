@@ -5,7 +5,7 @@
  */
 
 /* BOOT0 header information */
-	.word 0x4000		@ indicate BL1 size = 16KB
+	.word 0x2000		@ indicate BL1 size = 8KB
 	.word 0x0
 	.word 0x0
 	.word 0x0
