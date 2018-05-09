@@ -29,9 +29,11 @@
  * Relocate armboot to ram. Setup stack.
  *
  *************************************************************************/
-	.globl	_TEXT_PHY_BASE
 _TEXT_PHY_BASE:
 	.word	CONFIG_SYS_TEXT_BASE
+
+copy_sd_mmc_to_mem:
+	.word	0xD0037F98
 
 	.globl	reset
 	.globl	save_boot_params_ret
@@ -172,7 +174,7 @@ onenand_boot:
 	b	onenand_boot
 
 mmcsd_boot:
-	/* bl      movi_bl2_copy */
+	bl      copy_from_mmcsd
 	b       after_copy
 
 nor_boot:
@@ -180,8 +182,8 @@ nor_boot:
 
 
 after_copy:
-	ldr	pc, =_main
-	/* bl	_main */
+	ldr	pc, =_main		@ jump into ddr
+
 
 /*------------------------------------------------------------------------------*/
 
@@ -461,4 +463,40 @@ compare_failed:
 	nop			/* compare failed */
 	b	compare_failed
 ENDPROC(copy_from_nand)
+
+
+/*************************************************************************
+ *
+ * copy U-Boot to SDRAM and jump to ram (from SD/MMC)
+ * size align with a block (512Byte)
+ *
+ *************************************************************************/
+ENTRY(copy_from_mmcsd)
+	push	{lr}		/* save return address */
+
+	/* @param_0 channel */
+	ldr	r0, =0
+
+	/* @param_1 u32 StartBlkAddress */
+	ldr	r1, =49		@ BL1 at block1,BL2 at block49
+
+	/* @param_2 u16 blockSize */
+	ldr	r2, =512<<10	@ 512kB, BL2 should include dtb file
+	lsr	r2, #9		@ r2 >>= 9, as r2/=512
+	add	r2, #1		@ r2 += 1
+
+	/* @param_3 u32* memoryPtr */
+	ldr	r3, _TEXT_PHY_BASE
+
+	/* @param_4 bool with_init */
+	ldr	r4, =0		@ no init
+	push	{r4}		@ fourth arg at stack
+
+	ldr	r4, copy_sd_mmc_to_mem
+	mov	lr, pc
+	ldr	pc, [r4]
+
+	pop	{r4, pc}
+
+ENDPROC(copy_from_mmcsd)
 

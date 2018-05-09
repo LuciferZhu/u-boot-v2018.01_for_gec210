@@ -195,7 +195,7 @@
 #define SDRAM_BANK_SIZE         0x10000000	/* 256MB */
 #define PHYS_SDRAM_1            CONFIG_SYS_SDRAM_BASE /* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE       SDRAM_BANK_SIZE
-#define PHYS_SDRAM_2            (MEMORY_BASE_ADDRESS1) /* SDRAM Bank #2(2016-10-12 20:19:53鏈辩浉涓滀慨鏀? */
+#define PHYS_SDRAM_2            (MEMORY_BASE_ADDRESS1) /* SDRAM Bank #2 */
 #define PHYS_SDRAM_2_SIZE       SDRAM_BANK_SIZE
 
 
