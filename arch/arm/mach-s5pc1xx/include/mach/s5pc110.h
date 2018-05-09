@@ -30,6 +30,8 @@
 
 
 #define __REG(x)	(*(volatile unsigned long*)(x))
+#define __REGb(x)	(*(volatile unsigned char*)(x))
+
 
 #ifndef CONFIG_S5PC110
 #define CONFIG_S5PC110			1

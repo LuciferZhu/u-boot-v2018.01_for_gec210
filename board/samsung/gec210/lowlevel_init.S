@@ -31,12 +31,24 @@ lowlevel_init:
 	orr	r0, r0, #0x0
 	str	r5, [r0]
 
+	/* when we already run in ram, we do not need to relocate U-Boot.
+	 * and actually, memory controller must be configured before U-Boot
+	 * is running in ram.
+	 */
+	ldr	r0, =0xff000fff
+	bic	r1, pc, r0		/* r0 <- current base addr of code */
+	ldr	r2, =CONFIG_SYS_TEXT_BASE /* r1 <- original base addr in ram */
+	bic	r2, r2, r0		/* r0 <- current base addr of code */
+	cmp     r1, r2                  /* compare r0, r1                  */
+	beq     1f			/* r0 == r1 then skip sdram init   */
+
 	/* init system clock */
 	bl system_clock_init
 
 	/* Memory initialize */
 	bl mem_ctrl_asm_init
 
+1:
 	/* for UART */
 	bl uart_asm_init
 
@@ -45,12 +57,12 @@ lowlevel_init:
 
 	/* simple init for NAND */
 	bl nand_asm_init
-	
+
 	/* Print 'K' */
 	ldr	r0, =ELFIN_UART_CONSOLE_BASE
 	ldr	r1, =0x4b4b4b4b
 	str	r1, [r0, #UTXH_OFFSET]
-1:
+
 	mov	lr, r9
 	mov	pc, lr
 
@@ -141,35 +153,44 @@ retryloop:
  * void uart_asm_init(void)
  */
 uart_asm_init:
+	/* uart0 gpio setup */
+	ldr 	r0, =GPA0CON
+	ldr 	r1, [r0]
+	bic 	r1, #0xff
+	orr 	r1, #0x22
+	str 	r1, [r0]
 
-	/* set GPIO(GPA) to enable UART */
-	@ GPIO setting for UART
-	ldr	r0, =ELFIN_GPIO_BASE
-	ldr	r1, =0x22222222
-	str   	r1, [r0, #GPA0CON_OFFSET]
+	ldr 	r0, =ELFIN_UART_CONSOLE_BASE
 
-	ldr     r1, =0x2222
-	str     r1, [r0, #GPA1CON_OFFSET]
+	ldr 	r1, =0x00000003		@ No parityNo parity, No parity, 8-bit
+	str 	r1, [r0, #ULCON_OFFSET]
 
-	ldr	r0, =ELFIN_UART_CONSOLE_BASE		@0xEC000000
-	mov	r1, #0x0
-	str	r1, [r0, #UFCON_OFFSET]
-	str	r1, [r0, #UMCON_OFFSET]
+	ldr 	r1, =0x00000305		@  PCLK, Level, Interrupt request or polling mode
+	str 	r1, [r0, #UCON_OFFSET]
 
-	mov	r1, #0x3
-	str	r1, [r0, #ULCON_OFFSET]
+	ldr 	r1, =0x00000001		@ [trigger level] Tx FIFO-0 byte, Rx FIFO-32 byte,fifo en
+	str 	r1, [r0, #UFCON_OFFSET]
 
-	ldr	r1, =0x3c5
-	str	r1, [r0, #UCON_OFFSET]
+	ldr 	r1, =0			@ disable Auto Flow Control
+	str 	r1, [r0, #UMCON_OFFSET]
 
-	ldr	r1, =UART_UBRDIV_VAL
-	str	r1, [r0, #UBRDIV_OFFSET]
+	/* 
+	 * baudrate=115200
+	 * DIV_VAL = (660000000 / (115200 x 16)) -1 = 34.8
+	 * UBRDIVn = 34 ( integer part of DIV_VAL )
+	 * (num of 1's in UDIVSLOTn)/16 = 0.8, (num of 1's in UDIVSLOTn) = 13, UDIVSLOT=0xDFDD
+	 */
+	ldr 	r1, =34
+	str 	r1, [r0, #UBRDIV_OFFSET]
+	ldr 	r1, =0xDFDD
+	str 	r1, [r0, #UDIVSLOT_OFFSET]
 
-	ldr	r1, =UART_UDIVSLOT_VAL
-	str	r1, [r0, #UDIVSLOT_OFFSET]
+	ldr 	r1, =0x0f
+	str 	r1, [r0, #UINTM_OFFSET]	@ disable all uart interrupt
 
-	ldr	r1, =0x4f4f4f4f
-	str	r1, [r0, #UTXH_OFFSET]		@'O'
+	/* print "O" */
+	ldr 	r1, =0x4f
+	str 	r1, [r0, #UTXH_OFFSET]
 
 	mov	pc, lr
 

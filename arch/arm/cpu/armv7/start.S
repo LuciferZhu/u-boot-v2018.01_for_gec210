@@ -18,6 +18,7 @@
 #include <asm/system.h>
 #include <linux/linkage.h>
 #include <asm/armv7.h>
+#include <asm/arch/s5pc110.h>
 
 /*************************************************************************
  *
@@ -28,6 +29,9 @@
  * Relocate armboot to ram. Setup stack.
  *
  *************************************************************************/
+	.globl	_TEXT_PHY_BASE
+_TEXT_PHY_BASE:
+	.word	CONFIG_SYS_TEXT_BASE
 
 	.globl	reset
 	.globl	save_boot_params_ret
@@ -86,7 +90,98 @@ switch_to_hypervisor_ret:
 #endif
 #endif
 
-	bl	_main
+/*
+ * load BL2 into DDR
+ */
+	/* get ready to call C functions */
+	ldr	sp, _TEXT_PHY_BASE	/* setup temp stack pointer */
+	sub	sp, sp, #12
+	mov	fp, #0			/* no previous frame, so fp=0 */
+
+	/* when we already run in ram, we do not need to relocate U-Boot.
+	 * and actually, memory controller must be configured before U-Boot
+	 * is running in ram.
+	 */
+	ldr	r0, =0xff000fff
+	bic	r1, pc, r0		/* r0 <- current base addr of code */
+	ldr	r2, _TEXT_PHY_BASE	/* r1 <- original base addr in ram */
+	bic	r2, r2, r0		/* r0 <- current base addr of code */
+	cmp     r1, r2                  /* compare r0, r1                  */
+	beq     after_copy		/* r0 == r1 then skip flash copy   */
+
+	/*
+         * Read booting information.
+         */
+        ldr	r0, =PRO_ID_BASE
+        ldr	r1, [r0,#OMR_OFFSET]
+        bic	r2, r1, #0xffffffc1
+
+	/* NAND BOOT */
+	cmp	r2, #0x0		@ eSSD
+	moveq	r3, #BOOT_NAND
+
+	cmp	r2, #0x2		@ 2KB 5-cycle	8-bit ECC
+	moveq	r3, #BOOT_NAND
+
+	cmp	r2, #0x4		@ 4KB 5-cycle	8-bit ECC
+	moveq	r3, #BOOT_NAND
+
+	cmp	r2, #0x6		@ 4KB 5-cycle	16-bit ECC
+	moveq	r3, #BOOT_NAND
+
+	cmp	r2, #0x8		@ OneNAND Mux
+	moveq	r3, #BOOT_ONENAND
+
+	/* SD/MMC BOOT */
+	cmp     r2, #0xc
+	moveq   r3, #BOOT_MMCSD
+
+	/* NOR BOOT */
+	cmp     r2, #0x14
+	moveq   r3, #BOOT_NOR
+
+	/* Uart BOOTONG failed */
+	cmp     r2, #(0x1<<4)
+	moveq   r3, #BOOT_SEC_DEV
+
+	ldr	r0, =INF_REG_BASE
+	str	r3, [r0, #INF_REG3_OFFSET]
+
+	/*
+	 * copy u-boot from specific device.
+	 */
+	ldr	r0, =INF_REG_BASE
+	ldr	r1, [r0, #INF_REG3_OFFSET]
+	cmp	r1, #BOOT_NAND		/* 0x0 => boot device is nand */
+	beq	nand_boot
+	cmp	r1, #BOOT_ONENAND	/* 0x1 => boot device is onenand */
+	beq	onenand_boot
+	cmp     r1, #BOOT_MMCSD
+	beq     mmcsd_boot
+	cmp     r1, #BOOT_NOR
+	beq     nor_boot
+	cmp     r1, #BOOT_SEC_DEV
+	beq     mmcsd_boot
+
+nand_boot:
+	mov	r0, #0x1000
+	bl	copy_from_nand
+	b	after_copy
+
+onenand_boot:
+	b	onenand_boot
+
+mmcsd_boot:
+	/* bl      movi_bl2_copy */
+	b       after_copy
+
+nor_boot:
+	b       nor_boot
+
+
+after_copy:
+	ldr	pc, =_main
+	/* bl	_main */
 
 /*------------------------------------------------------------------------------*/
 
@@ -325,3 +420,45 @@ ENTRY(cpu_init_crit)
 	b	lowlevel_init		@ go setup pll,mux,memory
 ENDPROC(cpu_init_crit)
 #endif
+
+
+/*************************************************************************
+ *
+ * copy U-Boot to SDRAM and jump to ram (from NAND or OneNAND)
+ * r0: size to be compared
+ * Load 1'st 2blocks to RAM because U-boot's size is larger than 1block(128k) size
+ *
+ *************************************************************************/
+ENTRY(copy_from_nand)
+	push	{lr}		/* save return address */
+
+	mov	r9, r0
+
+	mov	r9, #0x100		/* Compare about 8KB */
+	bl	copy_uboot_to_ram
+	tst 	r0, #0x0
+	bne	copy_failed
+
+	ldr	r0, =0xd0020000
+
+	ldr	r1, _TEXT_PHY_BASE
+
+#if !defined(CONFIG_SECURE_BOOT)
+1:	ldr	r3, [r0], #4
+	ldr	r4, [r1], #4
+	teq	r3, r4
+	bne	compare_failed	/* not matched */
+	subs	r9, r9, #4
+	bne	1b
+#endif
+	pop	{pc}		/* all is OK */
+
+copy_failed:
+	nop			/* copy from nand failed */
+	b	copy_failed
+
+compare_failed:
+	nop			/* compare failed */
+	b	compare_failed
+ENDPROC(copy_from_nand)
+

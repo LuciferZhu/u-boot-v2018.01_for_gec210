@@ -52,8 +52,6 @@
  * select serial console configuration
  */
 #define CONFIG_SERIAL0			1	/* use SERIAL 0 on SMDKC100 */
-#define UART_UBRDIV_VAL			34
-#define UART_UDIVSLOT_VAL		0xDDDD
 
 /* PWM */
 #define CONFIG_PWM			1
@@ -209,7 +207,7 @@
 /* memtest works on */
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + 0x5e00000)
-#define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_MONITOR_BASE	0x00000000
 
@@ -232,13 +230,24 @@
 /*-----------------------------------------------------------------------
  * Boot configuration
  */
+#define BOOT_ONENAND		0x1
+#define BOOT_NAND		0x2
+#define BOOT_MMCSD		0x3
+#define BOOT_NOR		0x4
+#define BOOT_SEC_DEV		0x5
+
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KiB, 0x20000 */
 #define CONFIG_ENV_ADDR			(256 << 10)	/* 256KiB, 0x40000 */
 #define CONFIG_ENV_OFFSET		(256 << 10)	/* 256KiB, 0x40000 */
 
+/* nand copy size from nand to DRAM.*/
+#define	COPY_BL2_SIZE		0x80000
+
+#if 0
 #define CONFIG_USE_ONENAND_BOARD_INIT
 #define CONFIG_SAMSUNG_ONENAND		1
 #define CONFIG_SYS_ONENAND_BASE		0xE7100000
+#endif
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - 0x1000000)
 
