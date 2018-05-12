@@ -214,6 +214,8 @@
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		0xb0e00010
 
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 

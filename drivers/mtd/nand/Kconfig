@@ -160,6 +160,17 @@ config NAND_ZYNQ_USE_BOOTLOADER1_TIMINGS
 	  This flag prevent U-boot reconfigure NAND flash controller and reuse
 	  the NAND timing from 1st stage bootloader.
 
+config NAND_S5P
+	bool "Support for Samsung S5PV210 Nand controller"
+	imply CMD_NAND
+	help
+	  This enables Nand driver support for Nand flash controller
+	   on Samsung S5P1XX SoC.
+
+config S5P_NAND_HWECC
+	bool "Enable use of S5P1XX nand flash controller's hardware ecc"
+	depends on NAND_S5P
+
 comment "Generic NAND options"
 
 # Enhance depends when converting drivers to Kconfig which use this config

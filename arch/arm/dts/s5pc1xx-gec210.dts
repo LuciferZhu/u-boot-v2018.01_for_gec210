@@ -29,7 +29,7 @@
 	serial@e2900000 {
 		compatible = "samsung,exynos4210-uart";
 		reg = <0xe2900000 0x400>;
-		interrupts = <0 51 0>;
+		interrupts = <10>;
 		id = <0>;
 	};
 
