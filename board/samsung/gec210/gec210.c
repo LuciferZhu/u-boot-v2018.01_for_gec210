@@ -18,6 +18,7 @@ DECLARE_GLOBAL_DATA_PTR;
 /*
  * Miscellaneous platform dependent initialisations
  */
+#ifdef CONFIG_SMC911X
 static void smc9115_pre_init(void)
 {
 	u32 smc_bw_conf, smc_bc_conf;
@@ -34,11 +35,34 @@ static void smc9115_pre_init(void)
 	/* Select and configure the SROMC bank */
 	s5p_config_sromc(CONFIG_ENV_SROM_BANK, smc_bw_conf, smc_bc_conf);
 }
+#endif
+
+#ifdef CONFIG_DRIVER_DM9000
+static void dm9000_pre_init(void)
+{
+	unsigned int tmp;
+
+	/* DM9000 on SROM BANK1, 16 bit */
+	SROM_BW_REG &= ~(0xf << 4);
+	SROM_BW_REG |= (0x1 << 4);
+	SROM_BC1_REG = ((0<<28)|(0<<24)|(5<<16)|(0<<12)|(0<<8)|(0<<4)|(0<<0));
+	/* Set MP01_1 as SROM_CSn[1] */
+	tmp = MP01CON_REG;
+	tmp &=~(0xf<<4);
+	tmp |=(2<<4);
+	MP01CON_REG = tmp;
+}
+#endif
 
 int board_init(void)
 {
+#ifdef CONFIG_SMC911X
 	smc9115_pre_init();
+#endif
 
+#ifdef CONFIG_DRIVER_DM9000
+	dm9000_pre_init();
+#endif
 	gd->bd->bi_arch_number = MACH_TYPE_SMDKC110;
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
@@ -75,8 +99,13 @@ int checkboard(void)
 int board_eth_init(bd_t *bis)
 {
 	int rc = 0;
+
 #ifdef CONFIG_SMC911X
 	rc = smc911x_initialize(0, CONFIG_SMC911X_BASE);
+#endif
+
+#ifdef CONFIG_DRIVER_DM9000
+	rc = dm9000_initialize(bis);
 #endif
 	return rc;
 }

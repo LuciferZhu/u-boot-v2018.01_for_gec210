@@ -24,6 +24,7 @@
 #endif
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
+#include <asm/arch/s5pc110.h>
 
 #define CONFIG_ARCH_CPU_INIT
 
@@ -117,6 +118,11 @@
 	"bootblock=5\0" \
 	"ubiblock=4\0" \
 	"ubi=enabled"
+
+#define CONFIG_NETMASK          255.255.255.0
+#define CONFIG_IPADDR		192.168.1.48
+#define CONFIG_SERVERIP		192.168.1.46
+#define CONFIG_GATEWAYIP	192.168.1.1
 
 /*-----------------------------------------------------------------------
  * System clock configuration
@@ -256,8 +262,13 @@
 /*
  * Ethernet Contoller driver
  */
+#define CONFIG_DRIVER_DM9000		1
+#define CONFIG_DM9000_BASE		(0x88000000)
+#define DM9000_IO			(CONFIG_DM9000_BASE)
+#define DM9000_DATA			(CONFIG_DM9000_BASE+8)
+
 #ifdef CONFIG_CMD_NET
-#define CONFIG_ENV_SROM_BANK   3       /* Select SROM Bank-3 for Ethernet*/
+#define CONFIG_ENV_SROM_BANK   1       /* Select SROM Bank-1 for Ethernet*/
 #endif /* CONFIG_CMD_NET */
 
 #endif	/* __CONFIG_H */
