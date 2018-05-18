@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Driver for NAND support, Rick Bronson
  * borrowed heavily from:
  * (c) 1999 Machine Vision Holdings, Inc.
@@ -387,6 +387,11 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	int dev = nand_curr_device;
 	int repeat = flag & CMD_FLAG_REPEAT;
 
+#if defined(CONFIG_S5PC110) && !defined(CONFIG_FUSED) && !defined(CONFIG_SECURE)
+	ulong checksum;
+	uint8_t *ptr;
+#endif
+
 	/* at least two arguments please */
 	if (argc < 2)
 		goto usage;
@@ -611,11 +616,23 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				ret = nand_read_skip_bad(mtd, off, &rwsize,
 							 NULL, maxsize,
 							 (u_char *)addr);
-			else
+			else {
+#if defined(CONFIG_S5PC110) && !defined(CONFIG_FUSED) && !defined(CONFIG_SECURE)
+				if (off == 0) {
+					ptr = (u_char *)(addr + 16);
+					for(i = 16, checksum = 0; i < COPY_BL1_SIZE; i++) {
+						checksum += *ptr;
+						ptr++;
+					}
+					*((volatile u32 *)(addr + 0x8)) = checksum;
+					pr_info("BL1's checksum is calculated.\n");
+				}
+#endif
 				ret = nand_write_skip_bad(mtd, off, &rwsize,
 							  NULL, maxsize,
 							  (u_char *)addr,
 							  WITH_WR_VERIFY);
+			}
 #ifdef CONFIG_CMD_NAND_TRIMFFS
 		} else if (!strcmp(s, ".trimffs")) {
 			if (read) {

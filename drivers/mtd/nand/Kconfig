@@ -171,6 +171,13 @@ config S5P_NAND_HWECC
 	bool "Enable use of S5P1XX nand flash controller's hardware ecc"
 	depends on NAND_S5P
 
+config NAND_BL1_8BIT_ECC
+	bool "Enable write bootloader stage 1 in nand flash with 8-bit ecc"
+	depends on NAND_S5P
+	help
+	  Soc s5pc11x's BL0 require BL1 which located in block 0 on nand to carry
+	   with 8-bit ecc, otherwise it will be failed when boot the BL1 in nand.
+
 comment "Generic NAND options"
 
 # Enhance depends when converting drivers to Kconfig which use this config

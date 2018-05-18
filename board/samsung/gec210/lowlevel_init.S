@@ -231,6 +231,7 @@ tzpc_asm_init:
  * Nand Interface Init for GEC210
  */
 nand_asm_init:
+#if 0	/* own nand initial driver */
 	ldr	r0, =ELFIN_GPIO_BASE
 	/* pin CSn2 */
 	ldr	r1, [r0,#MP01CON_OFFSET]
@@ -261,5 +262,58 @@ nand_asm_init:
 	str	r1, [r0,#NFCONT_OFFSET]
 	 
 	mov	pc, lr
+#else
+	/* Setting GPIO for NAND */
+	/* This setting is NAND initialze code at booting time in iROM. */
 
+	ldr	r0, =ELFIN_GPIO_BASE
+
+	ldr	r1, [r0, #MP01CON_OFFSET]
+	bic	r1, r1, #(0xf<<8)
+	orr	r1, r1, #(0x3<<8)
+	str	r1, [r0, #MP01CON_OFFSET]
+
+	ldr	r1, [r0, #MP01PUD_OFFSET]
+	bic	r1, r1, #(0x3<<4)
+	str	r1, [r0, #MP01PUD_OFFSET]
+
+	ldr	r1, [r0, #MP03CON_OFFSET]
+	bic	r1, r1, #0xFFFFFF
+	ldr	r2, =0x22222222
+	orr	r1, r1, r2
+	str	r1, [r0, #MP03CON_OFFSET]
+
+	ldr	r1, [r0, #MP03PUD_OFFSET]
+	ldr	r2, =0x3fff
+	bic	r1, r1, r2
+	str	r1, [r0, #MP03PUD_OFFSET]
+
+	ldr	r0, =ELFIN_NAND_BASE
+
+	ldr	r1, [r0, #NFCONF_OFFSET]
+	ldr	r2, =0x777F
+	bic	r1, r1, r2
+	ldr	r2, =NFCONF_VAL
+	orr	r1, r1, r2
+	str	r1, [r0, #NFCONF_OFFSET]
+
+	ldr	r1, [r0, #NFCONT_OFFSET]
+	ldr	r2, =0x707C7
+	bic	r1, r1, r2
+	ldr	r2, =NFCONT_VAL
+	orr	r1, r1, r2
+	str	r1, [r0, #NFCONT_OFFSET]
+
+	ldr	r1, [r0, #NFCONF_OFFSET]
+	orr	r1, r1, #0x70
+	orr	r1, r1, #0x7700
+	str     r1, [r0, #NFCONF_OFFSET]
+
+	ldr	r1, [r0, #NFCONT_OFFSET]
+	orr	r1, r1, #0x03
+	str     r1, [r0, #NFCONT_OFFSET]
+
+	mov	pc, lr
+
+#endif
 

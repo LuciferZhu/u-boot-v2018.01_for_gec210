@@ -18,8 +18,8 @@
  */
 #define CONFIG_SAMSUNG		1	/* in a SAMSUNG core */
 #define CONFIG_S5P		1	/* which is in a S5P Family */
+#define CONFIG_S5PC110		1	/* which is in a S5PC110 / S5PV210 */
 #if 0
-#define CONFIG_S5PV210		1	/* which is in a S5PV210 */
 #define CONFIG_GEC210		1	/* working with GEC210 */
 #endif
 
@@ -222,6 +222,7 @@
  */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0xb0e00010
+#define CFG_NAND_PAGES_IN_BLOCK		64
 
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 
@@ -249,13 +250,8 @@
 #define CONFIG_ENV_OFFSET		(256 << 10)	/* 256KiB, 0x40000 */
 
 /* nand copy size from nand to DRAM.*/
+#define	COPY_BL1_SIZE		(8 << 10)	/* for irom's BL0 copy */
 #define	COPY_BL2_SIZE		0x80000
-
-#if 0
-#define CONFIG_USE_ONENAND_BOARD_INIT
-#define CONFIG_SAMSUNG_ONENAND		1
-#define CONFIG_SYS_ONENAND_BASE		0xE7100000
-#endif
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - 0x1000000)
 
