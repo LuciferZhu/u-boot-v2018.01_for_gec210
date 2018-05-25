@@ -142,7 +142,6 @@ static int nandll_read_blocks (ulong dst_addr, ulong size)
 
 int copy_uboot_to_ram (void)
 {
-	int large_block = 0;
 	int i;
 	vu_char id;
 
@@ -158,9 +157,7 @@ int copy_uboot_to_ram (void)
 	id = NFDATA8_REG;
 	id = NFDATA8_REG;
 
-	if (id > 0x80)
-		large_block = 1;
-	else
+	if (id <= 0x80)
 		return -1;	// Do not support small page (512B) any more
 
 	/* read NAND blocks */

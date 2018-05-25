@@ -22,6 +22,8 @@
 #if 0
 #define CONFIG_GEC210		1	/* working with GEC210 */
 #endif
+#define CONFIG_MACH_TYPE		MACH_TYPE_SMDKV210
+
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/s5pc110.h>
@@ -63,30 +65,30 @@
 #define CONFIG_MTD_DEVICE
 #define CONFIG_MTD_PARTITIONS
 
-#define CONFIG_BOOTCOMMAND	"run ubifsboot"
+#define CONFIG_BOOTCOMMAND	"run bootk"
 
 #define CONFIG_RAMDISK_BOOT	"root=/dev/ram0 rw rootfstype=ext2" \
 				" console=ttySAC0,115200n8" \
-				" mem=128M"
+				" mem=512M"
 
 #define CONFIG_COMMON_BOOT	"console=ttySAC0,115200n8" \
-				" mem=128M " \
+				" mem=512M " \
 				" " CONFIG_MTDPARTS_DEFAULT
 
-#define CONFIG_UPDATEB	"updateb=onenand erase 0x0 0x40000;" \
-			" onenand write 0x32008000 0x0 0x40000\0"
+#define CONFIG_UPDATEB	"updateb=nand erase.part boot;" \
+			"nand write 0x40000000 boot\0"
 
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	CONFIG_UPDATEB \
 	"updatek=" \
-		"onenand erase 0x60000 0x300000;" \
-		"onenand write 0x31008000 0x60000 0x300000\0" \
+		"nand erase.part kernel;" \
+		"nand write 0x40000000 kernel\0" \
 	"updateu=" \
 		"onenand erase block 147-4095;" \
 		"onenand write 0x32000000 0x1260000 0x8C0000\0" \
 	"bootk=" \
-		"onenand read 0x30007FC0 0x60000 0x300000;" \
+		"nand read 0x30007FC0 kernel;" \
 		"bootm 0x30007FC0\0" \
 	"flashboot=" \
 		"set bootargs root=/dev/mtdblock${bootblock} " \
@@ -113,7 +115,7 @@
 		" initrd=0x33000000,8M ramdisk=8192\0" \
 	"rootfstype=cramfs\0" \
 	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
-	"meminfo=mem=128M\0" \
+	"meminfo=mem=512M\0" \
 	"nfsroot=/nfsroot/arm\0" \
 	"bootblock=5\0" \
 	"ubiblock=4\0" \
@@ -246,8 +248,8 @@
 #define BOOT_SEC_DEV		0x5
 
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KiB, 0x20000 */
-#define CONFIG_ENV_ADDR			(256 << 10)	/* 256KiB, 0x40000 */
-#define CONFIG_ENV_OFFSET		(256 << 10)	/* 256KiB, 0x40000 */
+#define CONFIG_ENV_ADDR			(512 << 10)	/* 512KiB, 0x80000 */
+#define CONFIG_ENV_OFFSET		(512 << 10)	/* 512KiB, 0x80000 */
 
 /* nand copy size from nand to DRAM.*/
 #define	COPY_BL1_SIZE		(8 << 10)	/* for irom's BL0 copy */

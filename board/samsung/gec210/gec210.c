@@ -63,7 +63,8 @@ int board_init(void)
 #ifdef CONFIG_DRIVER_DM9000
 	dm9000_pre_init();
 #endif
-	gd->bd->bi_arch_number = MACH_TYPE_SMDKC110;
+	/* bi_arch_number has set in setup_machine(). */
+	/* gd->bd->bi_arch_number = MACH_TYPE_SMDKC110; */
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	return 0;
