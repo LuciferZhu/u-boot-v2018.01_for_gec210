@@ -75,13 +75,15 @@
 				" mem=512M " \
 				" " CONFIG_MTDPARTS_DEFAULT
 
-#define CONFIG_UPDATEB	"updateb=nand erase.part boot;" \
+#define CONFIG_UPDATEB	"updateb=tftp 0x40000000 u-boot.bin;" \
+			"nand erase.part boot;" \
 			"nand write 0x40000000 boot\0"
 
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	CONFIG_UPDATEB \
 	"updatek=" \
+		"tftp 0x40000000 uImage;" \
 		"nand erase.part kernel;" \
 		"nand write 0x40000000 kernel\0" \
 	"updateu=" \
@@ -268,5 +270,9 @@
 #ifdef CONFIG_CMD_NET
 #define CONFIG_ENV_SROM_BANK   1       /* Select SROM Bank-1 for Ethernet*/
 #endif /* CONFIG_CMD_NET */
+
+#define CONFIG_LCD_LOGO			1
+#define LCD_BPP				LCD_COLOR32
+
 
 #endif	/* __CONFIG_H */

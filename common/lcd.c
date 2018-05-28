@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Common LCD routines
  *
  * (C) Copyright 2001-2002
@@ -27,7 +27,8 @@
 #include <bmp_logo.h>
 #include <bmp_logo_data.h>
 #if (CONSOLE_COLOR_WHITE >= BMP_LOGO_OFFSET) && (LCD_BPP != LCD_COLOR16)
-#error Default Color Map overlaps with Logo Color Map
+/* #error Default Color Map overlaps with Logo Color Map */
+#warning Default Color Map overlaps with Logo Color Map
 #endif
 #endif
 
@@ -349,8 +350,11 @@ void lcd_logo_plot(int x, int y)
 	uchar *bmap = &bmp_logo_bitmap[0];
 	unsigned bpix = NBITS(panel_info.vl_bpix);
 	uchar *fb = (uchar *)(lcd_base + y * lcd_line_length + x * bpix / 8);
+#if 0
 	ushort *fb16;
-
+#else
+	uint *fb32;
+#endif
 	debug("Logo: width %d  height %d  colors %d\n",
 	      BMP_LOGO_WIDTH, BMP_LOGO_HEIGHT, BMP_LOGO_COLORS);
 
@@ -366,6 +370,7 @@ void lcd_logo_plot(int x, int y)
 		}
 	}
 	else { /* true color mode */
+		#if 0
 		u16 col16;
 		fb16 = (ushort *)fb;
 		for (i = 0; i < BMP_LOGO_HEIGHT; ++i) {
@@ -379,6 +384,21 @@ void lcd_logo_plot(int x, int y)
 			bmap += BMP_LOGO_WIDTH;
 			fb16 += panel_info.vl_col;
 		}
+		#else /* for 24bit color */
+		fb32 = (uint *)fb;
+		for (i=0; i < BMP_LOGO_HEIGHT; ++i) {
+			for (j=0; j < BMP_LOGO_WIDTH; j++) {
+				u32 color = bmp_logo_palette[(bmap[j]-BMP_LOGO_OFFSET)];
+				/* RGB-888 */
+				fb32[j] = ((color & 0x000F) << 4) |
+					    ((color & 0x00F0) << 8) |
+					    ((color & 0x0F00) << 12);
+			}
+			bmap += BMP_LOGO_WIDTH;
+			fb32 += panel_info.vl_col;
+		}
+		#endif
+
 	}
 
 	WATCHDOG_RESET();

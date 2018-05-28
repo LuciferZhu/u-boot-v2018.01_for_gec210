@@ -1,4 +1,4 @@
-#include "compiler.h"
+﻿#include "compiler.h"
 
 enum {
 	MODE_GEN_INFO,
@@ -12,7 +12,7 @@ typedef struct bitmap_s {		/* bitmap description */
 	uint8_t	*data;
 } bitmap_t;
 
-#define DEFAULT_CMAP_SIZE	16	/* size of default color map	*/
+#define DEFAULT_CMAP_SIZE	8	/* size of default color map	*/
 
 void usage(const char *prog)
 {
