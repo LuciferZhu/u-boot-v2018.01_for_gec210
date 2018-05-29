@@ -475,28 +475,23 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	 *   LCD_HSYNC LCD_VSYNC LCD_VDEN LCD_VCLK
 	 *  LCD_VD[0] LCD_VD[1] LCD_VD[2] LCD_VD[3]
 	 */
-	//rGPF0CON = 0x22222222;
 	Outp32(GPF0CON, 0x22222222);
-	
+
 	/* 2.配置引脚
 	 *   LCD_VD[4] LCD_VD[5] LCD_VD[6] LCD_VD[7]
 	 *    LCD_VD[8] LCD_VD[9] LCD_VD[10] LCD_VD[11]
-	 */	   
-	//rGPF1CON = 0x22222222;
+	 */
 	Outp32(GPF1CON, 0x22222222);
 
 	/* 3.配置引脚
 	   LCD_VD[12] LCD_VD[13] LCD_VD[14] LCD_VD[15]
-	   LCD_VD[16] LCD_VD[17] LCD_VD[18] LCD_VD[19]		   
-	*/	   
-	//rGPF2CON = 0x22222222;  
+	   LCD_VD[16] LCD_VD[17] LCD_VD[18] LCD_VD[19]
+	*/
 	Outp32(GPF2CON, 0x22222222);
 
 	/* 4.配置引脚
 	    LCD_VD[20] LCD_VD[21] LCD_VD[22] LCD_VD[23]
-	*/	   
-	//rGPF3CON &=~((0xF<<12)|(0xF<<8)|(0xF<<4)|(0xF<<0));	   
-	//rGPF3CON |= ((0x2<<12)|(0x2<<8)|(0x2<<4)|(0x2<<0));	   
+	*/
 	Outp32(GPF3CON, Inp32(GPF3CON) & (~((0xF<<12)|(0xF<<8)|(0xF<<4)|(0xF<<0))));
 	Outp32(GPF3CON, Inp32(GPF3CON) | ((0x2<<12)|(0x2<<8)|(0x2<<4)|(0x2<<0)));
 
@@ -508,7 +503,7 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	   [6]:4 显示主区域的HCLK时钟为166MHz，为了得到33.3MHz左右的频率，当前的值要设置为4
 	   [18]:0 因为我们当前是RGB并行接口，意思就是说一次发送3个字节，什么是串行接口，3个字节分3次来发送
 	   [26]:0 配置为RGB接口
-	*/	   
+	*/
 	//rVIDCON0=(0<<26)|(0<<18)|(4<<6)|(1<<4)|(1<<1)|(1<<0);
 	Outp32(ELFIN_LCD_BASE, (0<<26)|(0<<18)|(4<<6)|(1<<4)|(1<<1)|(1<<0));
 
@@ -538,7 +533,7 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	/* 9.配置rVIDTCON2，这个要看LCD的分辨率，800x480
 	   [10:0]:799+1   一行有多少个像素点
 	   [11:21]:479+1  有多少行
-	*/	   
+	*/
 	//rVIDTCON2 = (479<<11)|(799<<0);
 	Outp32(ELFIN_LCD_BASE+0x18, (479<<11)|(799<<0));
 
@@ -548,13 +543,12 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	    [15]:1	 发现EN_LOCAL=0，因为我们待会使用显存即DMA,使能字交换
 			 即每次DMA传输数据最小单元为字传输
 	    [22]:0	使用DMA（直接内存访问:直接向某一地址写数据的时候会自动操作硬件，不需要CPU进行干预）
-	*/		   
+	*/
 	//rWINCON0=(1<<15)|(0xB<<2)|(1<<0);
 	Outp32(ELFIN_LCD_BASE+0x20, (1<<15)|(0xB<<2)|(1<<0));
 
 	/* 11.配置rVIDW00ADD0B0，用于设置显示缓存的起始地址
-
-	*/		    
+	*/
 	//rVIDW00ADD0B0=0x48000000;
 	Outp32(ELFIN_LCD_BASE+0xA0, (u32)lcdbase);
 
@@ -562,7 +556,7 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	    公式如下:VBASEL = VBASEU +(PAGEWIDTH+OFFSIZE) x (LINEVAL+1)
 			    = 0x48000000+(800+0)x(479+1)x4
 		800x480*4[A:R:G:B]
-	*/			    
+	*/
 	//rVIDW00ADD1B0=0x48000000+800*4*480;
 	Outp32(ELFIN_LCD_BASE+0xD0, ((u32)lcdbase)+800*4*480);
 
@@ -570,12 +564,12 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	   [12:0]  : 800*4 因为Linux显示是32位色，为了兼容以后的Linux驱动部分，增加它的空间
 					   字对齐
 	   [13:25] : 因为当前显示不需要偏移，设置为0就可以了。
-	 */			    
+	 */
 	//rVIDW00ADD2  = (0<<13)|((800*4)<<0);
 	Outp32(ELFIN_LCD_BASE+0x100, (0<<13)|((800*4)<<0));
 
 	/* 14.rSHADOWCON 使能Channel 0
-	   [0]:1 
+	   [0]:1
 	 */
 	//rSHADOWCON|=(1<<0);
 	Outp32(ELFIN_LCD_BASE+0x34, Inp32(ELFIN_LCD_BASE+0x34) | (1<<0));
@@ -583,25 +577,25 @@ static void LCD_Initialize_AT070TN90(void *lcdbase)
 	/* 15.rVIDOSD0A 配置显示区域的左上角x/y坐标值
 	    [10:0] :0  左上角的Y坐标值
 	    [21:11]:0  左上角的X坐标值
-	*/	   
+	*/
 	//rVIDOSD0A = (0<<11)|(0<<0);
 	Outp32(ELFIN_LCD_BASE+0x40, (0<<11)|(0<<0));
 
 	/* 16.rVIDOSD0B 配置显示区域的右下角x/y坐标值
 	    [10:0] :479  右下角的Y坐标值
 	    [21:11]:799  右下角的X坐标值
-	*/	   
+	*/
 	//rVIDOSD0B = (799<<11)|(479<<0);
 	Outp32(ELFIN_LCD_BASE+0x44, (799<<11)|(479<<0));
 
 	/* 17.rVIDOSD0C 配置窗口的大小也就是窗口的分辨率
 	    [23:0] :800*480  For example, Height * Width
-	*/	   
+	*/
 	//rVIDOSD0C = 800*480;
 	Outp32(ELFIN_LCD_BASE+0x48, 800*480);
 
 	/* 18.配置FIMD一定要为RGB接口
-	 */		    
+	 */
 	//rDISPLAY_CONTROL=2<<0;
 	Outp32(0xe0107008, 2<<0);
 
@@ -611,7 +605,7 @@ void lcd_ctrl_init(void *lcdbase)
 {
 	fb_base = lcdbase;
 	LCD_Initialize_AT070TN90(lcdbase);
-	
+
 	/* Enable flushing if we enabled dcache for staying dma coherent */
 	lcd_set_flush_dcache(1);
 }

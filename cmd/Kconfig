@@ -774,6 +774,12 @@ config CMD_NAND_TRIMFFS
 	help
 	  Allows one to skip empty pages when flashing something on a NAND.
 
+config CMD_NAND_YAFFS
+	bool "nand write.yaffs2"
+	default y
+	help
+	  Allows one to misalign write pages when flashing something on a NAND.
+
 config CMD_NAND_LOCK_UNLOCK
 	bool "nand lock/unlock"
 	help
