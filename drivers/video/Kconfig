@@ -658,4 +658,16 @@ config VIDEO_DT_SIMPLEFB
 	  The video output is initialized by U-Boot, and kept by the
 	  kernel.
 
+config S5P_FB
+	bool "Enable s5pc11x's fimd lcd driver support"
+	help
+	  Enable soc s5pc11x lcd driver without driver model.
+
+config LCD_AT070TN90
+	bool "support lcd model named AT070TN90"
+	default y
+	depends on S5P_FB
+	help
+	  support the lcd model AT070TN90
+
 endmenu

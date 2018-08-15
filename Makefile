@@ -330,6 +330,7 @@ scripts/Kbuild.include: ;
 include scripts/Kbuild.include
 
 # Make variables (CC, etc...)
+CROSS_COMPILE	?= /usr/local/arm/gcc-linaro-7.2.1-2017.11-i686_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 
 AS		= $(CROSS_COMPILE)as
 # Always use GNU ld
@@ -355,7 +356,7 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
 
-KBUILD_CPPFLAGS := -D__KERNEL__ -D__UBOOT__
+KBUILD_CPPFLAGS := -D__KERNEL__ -D__UBOOT__ #-DDEBUG
 
 KBUILD_CFLAGS   := -Wall -Wstrict-prototypes \
 		   -Wno-format-security \
@@ -1030,7 +1031,7 @@ u-boot.sha1:	u-boot.bin
 		tools/ubsha1 u-boot.bin
 
 u-boot.dis:	u-boot
-		$(OBJDUMP) -d $< > $@
+		$(OBJDUMP) -D $< > $@
 
 ifdef CONFIG_TPL
 SPL_PAYLOAD := tpl/u-boot-with-tpl.bin

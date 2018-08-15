@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  Overview:
  *   This is the generic MTD driver for NAND flash devices. It should be
  *   capable of working with almost all NAND chips currently available.
@@ -353,6 +353,11 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs)
 		ofs += mtd->erasesize - mtd->writesize;
 
 	page = (int)(ofs >> chip->page_shift) & chip->pagemask;
+	
+#if defined(CONFIG_NAND_BL1_8BIT_ECC) && defined(CONFIG_S5PC110)
+	if (page < CFG_NAND_PAGES_IN_BLOCK)
+		return 0;
+#endif
 
 	do {
 		if (chip->options & NAND_BUSWIDTH_16) {
@@ -1677,6 +1682,9 @@ static int nand_setup_read_retry(struct mtd_info *mtd, int retry_mode)
 	return chip->setup_read_retry(mtd, retry_mode);
 }
 
+extern int s3c_nand_read_page_8bit(struct mtd_info *mtd, struct nand_chip *chip,
+				uint8_t *buf);
+
 /**
  * nand_do_read_ops - [INTERN] Read data with ECC
  * @mtd: MTD device structure
@@ -1744,18 +1752,26 @@ read_retry:
 			 * Now read the page into the buffer.  Absent an error,
 			 * the read methods return max bitflips per ecc step.
 			 */
-			if (unlikely(ops->mode == MTD_OPS_RAW))
-				ret = chip->ecc.read_page_raw(mtd, chip, bufpoi,
-							      oob_required,
-							      page);
-			else if (!aligned && NAND_HAS_SUBPAGE_READ(chip) &&
-				 !oob)
-				ret = chip->ecc.read_subpage(mtd, chip,
-							col, bytes, bufpoi,
-							page);
-			else
-				ret = chip->ecc.read_page(mtd, chip, bufpoi,
-							  oob_required, page);
+#if defined(CONFIG_NAND_BL1_8BIT_ECC) && defined(CONFIG_S5PC110)
+			if (page < CFG_NAND_PAGES_IN_BLOCK) {
+				ret = s3c_nand_read_page_8bit(mtd, chip, bufpoi);
+			} else
+#endif
+			{
+				if (unlikely(ops->mode == MTD_OPS_RAW))
+					ret = chip->ecc.read_page_raw(mtd, chip, bufpoi,
+								      oob_required,
+								      page);
+				else if (!aligned && NAND_HAS_SUBPAGE_READ(chip) &&
+					 !oob)
+					ret = chip->ecc.read_subpage(mtd, chip,
+								col, bytes, bufpoi,
+								page);
+				else
+					ret = chip->ecc.read_page(mtd, chip, bufpoi,
+								  oob_required, page);
+			}
+
 			if (ret < 0) {
 				if (use_bufpoi)
 					/* Invalidate page cache */
@@ -2404,6 +2420,9 @@ static int nand_write_page_syndrome(struct mtd_info *mtd,
 
 	return 0;
 }
+				    
+extern int s3c_nand_write_page_8bit(struct mtd_info *mtd, struct nand_chip *chip,
+			      const uint8_t *buf);
 
 /**
  * nand_write_page - [REPLACEABLE] write one page
@@ -2431,15 +2450,23 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	if (nand_standard_page_accessors(&chip->ecc))
 		chip->cmdfunc(mtd, NAND_CMD_SEQIN, 0x00, page);
 
-	if (unlikely(raw))
-		status = chip->ecc.write_page_raw(mtd, chip, buf,
-						  oob_required, page);
-	else if (subpage)
-		status = chip->ecc.write_subpage(mtd, chip, offset, data_len,
-						 buf, oob_required, page);
-	else
-		status = chip->ecc.write_page(mtd, chip, buf, oob_required,
-					      page);
+#if defined(CONFIG_NAND_BL1_8BIT_ECC) && defined(CONFIG_S5PC110)
+	if (page < CFG_NAND_PAGES_IN_BLOCK) {
+		memset(chip->oob_poi, 0xff, mtd->oobsize);
+		status = s3c_nand_write_page_8bit(mtd, chip, buf);
+	} else
+#endif
+	{
+		if (unlikely(raw))
+			status = chip->ecc.write_page_raw(mtd, chip, buf,
+							  oob_required, page);
+		else if (subpage)
+			status = chip->ecc.write_subpage(mtd, chip, offset, data_len,
+							 buf, oob_required, page);
+		else
+			status = chip->ecc.write_page(mtd, chip, buf, oob_required,
+						      page);
+	}
 
 	if (status < 0)
 		return status;
